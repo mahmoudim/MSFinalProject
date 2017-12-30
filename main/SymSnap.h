@@ -2,7 +2,7 @@
 #ifndef SymSnap_H
 #define SymSnap_H
 
-#include "Snap.h"
+#include "stdafx.h"
 
 namespace SymSnap {
 	TNEANet *DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);

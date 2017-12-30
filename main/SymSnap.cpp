@@ -1,8 +1,4 @@
-#include<stdafx.h>
 #include "SymSnap.h"
-#include <map>
-#include <Sparse>
-#include<iostream>
 
 TNEANet *SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
 	TIntPrV in,out;TIntPr val;
@@ -60,4 +56,4 @@ TNEANet *SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float tres
 		}
 
 	return graph;
-}
+};

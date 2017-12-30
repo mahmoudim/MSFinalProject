@@ -1,0 +1,25 @@
+cmake_minimum_required (VERSION 3.0)
+project (MainProject)
+add_executable(MainProject main/testgraph.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h)
+
+include_directories(snap/glib-core snap/snap-core snap/snap-adv snap/snap-exp Eigen)
+
+find_package(OpenMP)
+
+if(OPENMP_FOUND)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+# Whether to enable SSE
+set(SSE_FLAGS "")
+option(FCL_USE_X64_SSE "Whether FCL should x64 SSE instructions" ON)
+if(FCL_USE_X64_SSE)
+  if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(SSE_FLAGS -mfpmath=sse -msse -msse2 -msse3 -mssse3)
+  elseif(MSVC)
+    set(SSE_FLAGS /arch:SSE2)
+  endif()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS}")
+endif()

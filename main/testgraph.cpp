@@ -4,12 +4,12 @@
 #include <fstream>
 #include <streambuf>
 #include <algorithm>
-#include<iostream>
-#include "SymSnap.h"
+#include <cstdio>
+
+
 #define graphPath "graph.g"
 #define SnapMXWCCPath "graph.snap"
 
-using namespace std;
 
 int main(int argc, char* argv[]) {
 
@@ -19,8 +19,8 @@ int main(int argc, char* argv[]) {
   PNGraph F;
   
 
-  map<string, int> list;
-  map<int, string> listi;
+  std::map<std::string, int> list;
+  std::map<int, std::string> listi;
 
   TFIn fin(SnapMXWCCPath);
   try {
@@ -36,18 +36,18 @@ int main(int argc, char* argv[]) {
 	  int count = 0;
 	  while (fscanf(file, "%s ==> %s\n", source, dest) != EOF)
 	  {
-		  string source(source), dest(dest);
+		  std::string source(source), dest(dest);
 		  if (list.find(source) == list.end())
 		  {
-			  list.insert(pair<string, int>(source, count));
-			  listi.insert(pair<int, string>(count, source));
+			  list.insert(std::pair<std::string, int>(source, count));
+			  listi.insert(std::pair<int, std::string>(count, source));
 			  G->AddNode(count++);
 		  }
 
 		  if (list.find(dest) == list.end())
 		  {
-			  list.insert(pair<string, int>(dest, count));
-			  listi.insert(pair<int, string>(count, dest));
+			  list.insert(std::pair<std::string, int>(dest, count));
+			  listi.insert(std::pair<int, std::string>(count, dest));
 			  G->AddNode(count++);
 		  }
 		  G->AddEdge(list[source], list[dest]);
