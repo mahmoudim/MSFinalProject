@@ -6,4 +6,4 @@
 	url = git@github.com:mahmoudim/snap.git
 [submodule "clustering"]
 	path = clustering
-	url = git@github.com:graiola/clustering.git
+	url = git@github.com:mahmoudim/clustering.git
