@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "dblp.cpp"
 #include "arxiv.cpp"
+#include "SpectralClustering.cpp"
+#include "ClusterRotate.cpp"
+#include "Evrot.cpp"
+#include "Kmeans.cpp"
 #include "wgtnet.cpp"
 // TODO: reference any additional headers you need in STDAFX.H
 // and not in this file

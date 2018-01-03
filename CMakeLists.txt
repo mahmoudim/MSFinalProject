@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.0)
 project (MainProject)
 add_executable(MainProject main/testgraph.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h)
 
-include_directories(snap/glib-core snap/snap-core snap/snap-adv snap/snap-exp Eigen)
+include_directories(snap/glib-core snap/snap-core snap/snap-adv snap/snap-exp clustering/lib Eigen)
 
 find_package(OpenMP)
 

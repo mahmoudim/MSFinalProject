@@ -13,3 +13,4 @@
 #include <algorithm>
 #include <cstdio>
 #include "SymSnap.h"
+#include "SpectralClustering.h"

@@ -57,7 +57,9 @@ int main(int argc, char* argv[]) {
   //degree discounted 
 
   PWgtNet g = SymSnap::DegreeDiscounted(F, alpha, betha,0.25);
-
+  Eigen::MatrixXd m = Eigen::MatrixXd::Zero(100, 100);
+  SpectralClustering* c = new SpectralClustering(m, 100);
+  c->clusterRotate();
   
   TFltV v;
 
