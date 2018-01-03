@@ -1,7 +1,7 @@
 #pragma once
 
 #include "targetver.h"
-#include <Eigen\Sparse>
+#include <Eigen/Sparse>
 #include "Snap.h"
 #include "dblp.h"
 #include "arxiv.h"
