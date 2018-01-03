@@ -1,11 +1,4 @@
 #include "stdafx.h"
-#include <map>
-#include <string>
-#include <fstream>
-#include <streambuf>
-#include <algorithm>
-#include <cstdio>
-
 
 #define graphPath "graph.g"
 #define SnapMXWCCPath "graph.snap"
@@ -63,7 +56,7 @@ int main(int argc, char* argv[]) {
 
   //degree discounted 
 
-  TNEANet *g = SymSnap::DegreeDiscounted(F, alpha, betha,0.25);
+  PWgtNet g = SymSnap::DegreeDiscounted(F, alpha, betha,0.25);
 
   
   TFltV v;

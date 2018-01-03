@@ -5,6 +5,6 @@
 #include "stdafx.h"
 
 namespace SymSnap {
-	TNEANet *DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);
+	PWgtNet DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);
 }
 #endif 
