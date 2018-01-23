@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 namespace SymSnap {
-	PWgtNet DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);
+	Eigen::SparseMatrix<double> DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);
+	double getDirectedModularity(PNGraph G, std::vector<std::vector<int> > clusters);
 }
 #endif 

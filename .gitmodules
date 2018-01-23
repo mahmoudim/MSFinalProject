@@ -7,3 +7,6 @@
 [submodule "clustering"]
 	path = clustering
 	url = git@github.com:mahmoudim/clustering.git
+[submodule "spectra"]
+	path = spectra
+	url = git@github.com:yixuan/spectra.git

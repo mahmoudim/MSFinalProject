@@ -2,10 +2,9 @@ cmake_minimum_required (VERSION 3.0)
 project (MainProject)
 add_executable(MainProject main/testgraph.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h)
 
-include_directories(snap/glib-core snap/snap-core snap/snap-adv snap/snap-exp clustering/lib Eigen)
+include_directories(snap/glib-core snap/snap-core snap/snap-adv snap/snap-exp clustering/lib Eigen spectra/include)
 
 find_package(OpenMP)
-
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -17,7 +16,6 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
-
 
 if(OPENMP_FOUND)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -34,4 +32,10 @@ if(FCL_USE_X64_SSE)
     set(SSE_FLAGS /arch:SSE2)
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS}")
+  
 endif()
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
+
+
+

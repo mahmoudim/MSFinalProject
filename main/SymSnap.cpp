@@ -1,12 +1,14 @@
 #include "SymSnap.h"
 
-PWgtNet SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
+std::map<int, int> ids, idsrev;
+
+Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
 	TIntPrV in,out;TIntPr val;
 	
 	TSnap::GetNodeInDegV(G,in);
 	TSnap::GetNodeOutDegV(G,out);
 	int count = G->GetNodes();
-	std::map<int,int> ids, idsrev;
+	
 	Eigen::SparseMatrix<double> adj(count, count);
 	for (int i = 0; i < count; i++) {
 		adj.insert(i, i) = 1;
@@ -43,7 +45,7 @@ PWgtNet SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float tresh
 
 	Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold);
 
-	PWgtNet graph = TWgtNet::New();
+	/*PWgtNet graph = TWgtNet::New();
 
 	for (int k = 0; k < u.outerSize(); ++k) {
 		for (Eigen::SparseMatrix<double>::InnerIterator it(u, k); it; ++it)
@@ -58,6 +60,35 @@ PWgtNet SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float tresh
 		}
 	}
 	graph->AddBiDirEdges(1);
-
-	return graph;
-};
+	*/
+	return u;
+}
+double SymSnap::getDirectedModularity(PNGraph G, std::vector<std::vector<int>> clusters)
+{
+	int *Clusters = new int[G->GetNodes()];
+	for (int i = 0; i < clusters.size(); i++)
+	{
+		for (int j = 0; j < clusters[i].size(); j++)
+		{
+			//printf("%d ", clusters[i][j]);
+			Clusters[clusters[i][j]] = i;
+		}
+		//printf("\n");
+	}
+	printf(" ok \n");
+	int *IN_d = new int[clusters.size()];
+	int *OUT_d = new int[clusters.size()];
+	int *NUM_M = new int[clusters.size()];
+	printf(" ok \n");
+	for (TNGraph::TEdgeI s = G->BegEI(); s != G->EndEI(); s++) {
+		if (Clusters[s.GetSrcNId()] == Clusters[s.GetDstNId()])
+			NUM_M[Clusters[ids[s.GetSrcNId()]]] += 1;
+		OUT_d[Clusters[ids[s.GetSrcNId()]]] += 1;
+		IN_d[Clusters[ids[s.GetDstNId()]]] += 1;
+	}
+	double res=0,num_edges=G->GetEdges();
+	for (int i = 0; i < clusters.size(); i++)
+		res += (((double)NUM_M[i]) / (num_edges))-(((double)OUT_d[i] * IN_d[i]) / (num_edges*num_edges));
+	return res;
+}
+;

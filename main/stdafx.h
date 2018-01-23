@@ -1,5 +1,5 @@
 #pragma once
-
+#define NOMINMAX
 #include "targetver.h"
 #include <Eigen/Sparse>
 #include "Snap.h"
@@ -7,6 +7,7 @@
 #include "arxiv.h"
 #include "wgtnet.h"
 #include <map>
+#include <vector>
 #include <string>
 #include <fstream>
 #include <streambuf>

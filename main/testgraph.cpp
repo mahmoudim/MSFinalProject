@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
-#define graphPath "graph.g"
-#define SnapMXWCCPath "graph.snap"
+#define graphPath "../graph.g"
+#define SnapMXWCCPath "../graph.snap"
 
 
 int main(int argc, char* argv[]) {
@@ -55,15 +55,19 @@ int main(int argc, char* argv[]) {
   float alpha = 0.5, betha = 0.5;
 
   //degree discounted 
-
-  PWgtNet g = SymSnap::DegreeDiscounted(F, alpha, betha,0.25);
-  Eigen::MatrixXd m = Eigen::MatrixXd::Zero(100, 100);
-  SpectralClustering* c = new SpectralClustering(m, 100);
-  c->clusterRotate();
+  //Eigen::setNbThreads(6);
+  omp_set_num_threads(4);
+  Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha,0.25);
+  //Eigen::MatrixXd m = Eigen::MatrixXd::Zero(100, 100);
+  SpectralClustering* c = new SpectralClustering(g, 100);
+  printf("ok\n");
+  std::vector <std::vector<int>> a = c->clusterKmeans(10);//c->clusterRotate();
+  printf("ok\n");
+  printf("%lf",SymSnap::getDirectedModularity(F, a));
   
   TFltV v;
 
-  //TSnap::GetWeightedFarnessCentr(*g, v);
+  
 
   F->GetNIdV(lis);
 
