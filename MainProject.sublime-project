@@ -1,0 +1,95 @@
+{
+	"build_systems":
+	[
+		{
+			"file_regex": "(.+[^:]):(\\d+):(\\d+): (?:fatal )?((?:error|warning): .+)$",
+			"name": "MainProject (Linux)",
+			"shell_cmd": "make -j4",
+			"syntax": "Packages/CMakeBuilder/Syntax/Make.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "clean",
+					"shell_cmd": "make -j4 clean"
+				},
+				{
+					"name": "rebuild_cache",
+					"shell_cmd": "make -j4 rebuild_cache"
+				},
+				{
+					"name": "MainProject",
+					"shell_cmd": "make -j4 MainProject"
+				},
+				{
+					"name": "main/SymSnap.o",
+					"shell_cmd": "make -j4 main/SymSnap.o"
+				},
+				{
+					"name": "main/SymSnap.i",
+					"shell_cmd": "make -j4 main/SymSnap.i"
+				},
+				{
+					"name": "main/SymSnap.s",
+					"shell_cmd": "make -j4 main/SymSnap.s"
+				},
+				{
+					"name": "main/stdafx.o",
+					"shell_cmd": "make -j4 main/stdafx.o"
+				},
+				{
+					"name": "main/stdafx.i",
+					"shell_cmd": "make -j4 main/stdafx.i"
+				},
+				{
+					"name": "main/stdafx.s",
+					"shell_cmd": "make -j4 main/stdafx.s"
+				},
+				{
+					"name": "main/testgraph.o",
+					"shell_cmd": "make -j4 main/testgraph.o"
+				},
+				{
+					"name": "main/testgraph.i",
+					"shell_cmd": "make -j4 main/testgraph.i"
+				},
+				{
+					"name": "main/testgraph.s",
+					"shell_cmd": "make -j4 main/testgraph.s"
+				},
+				{
+					"name": "snap/snap-core/Snap.o",
+					"shell_cmd": "make -j4 snap/snap-core/Snap.o"
+				},
+				{
+					"name": "snap/snap-core/Snap.i",
+					"shell_cmd": "make -j4 snap/snap-core/Snap.i"
+				},
+				{
+					"name": "snap/snap-core/Snap.s",
+					"shell_cmd": "make -j4 snap/snap-core/Snap.s"
+				}
+			],
+			"working_dir": "${project_path}/build"
+		}
+	],
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"cmake":
+		{
+			"build_folder": "${project_path}/build",
+			"command_line_overrides":
+			{
+				"BUILD_SHARED_LIBS": true,
+				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_EXPORT_COMPILE_COMMANDS": true
+			},
+			"name": "Release"
+		}
+	}
+}
