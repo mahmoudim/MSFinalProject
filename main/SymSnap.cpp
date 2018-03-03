@@ -4,11 +4,11 @@ std::map<int, int> ids, idsrev;
 
 Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
 	TIntPrV in,out;TIntPr val;
-	
 	TSnap::GetNodeInDegV(G,in);
-	TSnap::GetNodeOutDegV(G,out);
-	int count = G->GetNodes();
-	
+    TSnap::GetNodeOutDegV(G,out);
+    int count = G->GetNodes();
+
+
 	Eigen::SparseMatrix<double> adj(count, count);
 	for (int i = 0; i < count; i++) {
 		adj.insert(i, i) = 1;
@@ -45,22 +45,6 @@ Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, flo
 
 	Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold);
 
-	/*PWgtNet graph = TWgtNet::New();
-
-	for (int k = 0; k < u.outerSize(); ++k) {
-		for (Eigen::SparseMatrix<double>::InnerIterator it(u, k); it; ++it)
-		{
-			if (!graph->IsNode(idsrev[it.row()])) {
-				graph->AddNode(idsrev[it.row()]);
-			}
-			if (!graph->IsNode(idsrev[it.col()])) {
-				graph->AddNode(idsrev[it.col()]);
-			}
-			graph->AddEdge(idsrev[it.row()], idsrev[it.col()], it.value());
-		}
-	}
-	graph->AddBiDirEdges(1);
-	*/
 	return u;
 }
 double SymSnap::getDirectedModularity(PNGraph G, std::vector<std::vector<int>> clusters)
@@ -90,5 +74,23 @@ double SymSnap::getDirectedModularity(PNGraph G, std::vector<std::vector<int>> c
 	for (int i = 0; i < clusters.size(); i++)
 		res += (((double)NUM_M[i]) / (num_edges))-(((double)OUT_d[i] * IN_d[i]) / (num_edges*num_edges));
 	return res;
+}
+void SymSnap::PrintSym(Eigen::SparseMatrix<double>g, std::map<int, std::string> listi, const char *path) {
+	FILE *symfile = fopen(path, "w");
+
+	for (int k = 0; k < g.outerSize(); ++k) {
+		for (Eigen::SparseMatrix<double>::InnerIterator it(g, k); it; ++it)
+		{
+            fprintf(symfile,"%ld,%ld,%f\n",it.row()+1,it.col()+1,it.value());
+		}
+	}
+	fclose(symfile);
+    FILE *index = fopen((std::string(path)+".index").c_str(), "w");
+    fprintf(index,"%ld\n",g.outerSize());
+    for(int i =0 ; i<g.outerSize(); i++)
+    {
+        fprintf(index,"%d,%s\n",i+1,listi[idsrev[i]].c_str());
+    }
+    fclose(index);
 }
 ;
