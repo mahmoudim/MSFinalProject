@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#define graphPath "graph.g"
 #define SymGraphPath "SymGraph.g"
 
 
