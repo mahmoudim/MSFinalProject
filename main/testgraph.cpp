@@ -6,7 +6,8 @@
 
 int main(int argc, char *argv[]) {
 
-
+    float alpha = 0.5, betha = 0.5, proneTreshold = 0.025;
+    
     int numthreads=4;
 #pragma region getargs
 
