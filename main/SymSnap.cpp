@@ -43,36 +43,30 @@ Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, flo
 
 	Eigen::SparseMatrix<double> cd = (di)*(adj)*(doo)*(adj_trans)*(di);
 
-	Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold);
+	Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold,1);
 
 	return u;
 }
-double SymSnap::getDirectedModularity(PNGraph G, std::vector<std::vector<int>> clusters)
+double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 {
-	int *Clusters = new int[G->GetNodes()];
-	for (int i = 0; i < clusters.size(); i++)
-	{
-		for (int j = 0; j < clusters[i].size(); j++)
-		{
-			//printf("%d ", clusters[i][j]);
-			Clusters[clusters[i][j]] = i;
-		}
-		//printf("\n");
-	}
-	printf(" ok \n");
-	int *IN_d = new int[clusters.size()];
-	int *OUT_d = new int[clusters.size()];
-	int *NUM_M = new int[clusters.size()];
-	printf(" ok \n");
+	double *IN_d = new double[count];
+	double  *OUT_d = new double [count];
+	double   *NUM_M = new double [count];
+	int i=0;
 	for (TNGraph::TEdgeI s = G->BegEI(); s != G->EndEI(); s++) {
 		if (Clusters[s.GetSrcNId()] == Clusters[s.GetDstNId()])
-			NUM_M[Clusters[ids[s.GetSrcNId()]]] += 1;
-		OUT_d[Clusters[ids[s.GetSrcNId()]]] += 1;
-		IN_d[Clusters[ids[s.GetDstNId()]]] += 1;
+			NUM_M[Clusters[s.GetSrcNId()]] += 1;
+        printf("a : %d %d %d %d\n",s.GetSrcNId(),s.GetDstNId(),Clusters[s.GetSrcNId()],Clusters[s.GetDstNId()]);
+		OUT_d[Clusters[s.GetSrcNId()]] += 1;
+		IN_d[Clusters[s.GetDstNId()]] += 1;
 	}
 	double res=0,num_edges=G->GetEdges();
-	for (int i = 0; i < clusters.size(); i++)
-		res += (((double)NUM_M[i]) / (num_edges))-(((double)OUT_d[i] * IN_d[i]) / (num_edges*num_edges));
+	printf("%f\n",num_edges);
+	for (int i = 0; i < count; i++) {
+			printf("%f,%f,%f\n",NUM_M[i],OUT_d[i],IN_d[i]);
+			res += ((NUM_M[i]) / (num_edges)) - ((OUT_d[i] * IN_d[i]) / (num_edges * num_edges));
+
+	}
 	return res;
 }
 void SymSnap::PrintSym(Eigen::SparseMatrix<double>g, std::map<int, std::string> listi, const char *path) {

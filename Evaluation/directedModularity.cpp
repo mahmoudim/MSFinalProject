@@ -1,42 +1,14 @@
-#include "stdafx.h"
+#include "../main/stdafx.h"
 
 #define graphPath "../graph.g"
-#define SymGraphPath "SymGraph.g"
+#define namesgraphPath "../SymGraph.g.index"
+#define ComgraphPath "../communities.names"
 
 
 int main(int argc, char *argv[]) {
 
-    float alpha = 0.5, betha = 0.5, proneTreshold = 0.025;
-
-    int numthreads=4;
-#pragma region getargs
-
-    if(argc>=2) {
-        std::string Salpha = std::string(argv[1]);
-        alpha = std::stof(Salpha);
-        printf("alpha: %f\n",alpha);
-    }
-    if(argc>=3) {
-        std::string Sbetha = std::string(argv[2]);
-        betha = std::stof(Sbetha);
-        printf("betha: %f\n",betha);
-    }
-    if(argc>=4) {
-        std::string Sprone = std::string(argv[3]);
-        proneTreshold=std::stof(Sprone);
-        printf("proneTreshold: %f\n",proneTreshold);
-    }
-    if(argc>=5) {
-        std::string Snumthreads = std::string(argv[4]);
-        numthreads=std::stoi(Snumthreads);
-    }
-
-#pragma endregion
-
-    Eigen::setNbThreads(numthreads);
-    omp_set_num_threads(numthreads);
-
     typedef PNGraph PGraph;
+    printf("Creating graph:\n");
     PGraph G = PGraph::TObj::New();
     PNGraph F;
 
@@ -66,15 +38,31 @@ int main(int argc, char *argv[]) {
         }
         G->AddEdge(list[source1], list[dest1]);
     }
+    printf("Creating MxWcc graph:\n");
     F = TSnap::GetMxWcc(G);
 
     TIntV lis;
 
-    //degree discounted
+    FILE *comfile = fopen(ComgraphPath, "r");
+    FILE *namesgraphfile = fopen(namesgraphPath, "r");
 
-    Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+    std::map<int,std::string> names;
+    int * clusters= new int[G->GetNodes()+1];
+    memset(clusters,0,sizeof(int)*(G->GetNodes()+1));
+    int nodeId,commid,commax=0;
+    char  nodename[10];
 
-    SymSnap::PrintSym(g,listi,SymGraphPath);
+    while (fscanf(namesgraphfile, "%d,%s\n", &nodeId, nodename) != EOF) {
+        names[nodeId]=std::string(nodename);
+    }
+
+    while (fscanf(comfile, "%d %d\n", &nodeId, &commid) != EOF) {
+        printf("%d %d %d\n",list[names[nodeId]],nodeId,commid);
+        clusters[list[names[nodeId]]]=commid;
+        commax=std::max(commax,commid);
+    }
+
+    printf("%f",SymSnap::getDirectedModularity(F,clusters,commax+1));
 
     return 0;
 }
