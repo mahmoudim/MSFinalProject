@@ -2,5 +2,6 @@ MainProject.sublime-workspace
 build/
 cmake-build-debug/
 .idea/
+preds.names
 SymGraph.g
 SymGraph.g.index

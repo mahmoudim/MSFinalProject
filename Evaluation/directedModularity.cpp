@@ -2,13 +2,12 @@
 
 #define graphPath "../graph.g"
 #define namesgraphPath "../SymGraph.g.index"
-#define ComgraphPath "../communities.names"
+#define ComgraphPath "../preds.names"
 
 
 int main(int argc, char *argv[]) {
 
     typedef PNGraph PGraph;
-    printf("Creating graph:\n");
     PGraph G = PGraph::TObj::New();
     PNGraph F;
 
@@ -38,7 +37,6 @@ int main(int argc, char *argv[]) {
         }
         G->AddEdge(list[source1], list[dest1]);
     }
-    printf("Creating MxWcc graph:\n");
     F = TSnap::GetMxWcc(G);
 
     TIntV lis;
@@ -57,7 +55,6 @@ int main(int argc, char *argv[]) {
     }
 
     while (fscanf(comfile, "%d %d\n", &nodeId, &commid) != EOF) {
-        printf("%d %d %d\n",list[names[nodeId]],nodeId,commid);
         clusters[list[names[nodeId]]]=commid;
         commax=std::max(commax,commid);
     }

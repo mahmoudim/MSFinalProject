@@ -56,14 +56,11 @@ double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 	for (TNGraph::TEdgeI s = G->BegEI(); s != G->EndEI(); s++) {
 		if (Clusters[s.GetSrcNId()] == Clusters[s.GetDstNId()])
 			NUM_M[Clusters[s.GetSrcNId()]] += 1;
-        printf("a : %d %d %d %d\n",s.GetSrcNId(),s.GetDstNId(),Clusters[s.GetSrcNId()],Clusters[s.GetDstNId()]);
 		OUT_d[Clusters[s.GetSrcNId()]] += 1;
 		IN_d[Clusters[s.GetDstNId()]] += 1;
 	}
 	double res=0,num_edges=G->GetEdges();
-	printf("%f\n",num_edges);
 	for (int i = 0; i < count; i++) {
-			printf("%f,%f,%f\n",NUM_M[i],OUT_d[i],IN_d[i]);
 			res += ((NUM_M[i]) / (num_edges)) - ((OUT_d[i] * IN_d[i]) / (num_edges * num_edges));
 
 	}
