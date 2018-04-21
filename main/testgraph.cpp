@@ -72,9 +72,9 @@ int main(int argc, char *argv[]) {
 
     //degree discounted
 
-    Eigen::Matrix2d g = SymSnap::DegreeDiscountedProPosed(F, alpha, betha);
+    Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
 
-    SymSnap::PrintSym(g,listi,SymGraphPath,proneTreshold);
+    SymSnap::PrintSym(g,listi,SymGraphPath);
 
     return 0;
 }

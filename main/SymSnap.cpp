@@ -47,62 +47,6 @@ Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, flo
 
 	return u;
 }
-
-Eigen::Matrix2d SymSnap::DegreeDiscountedProPosed(PNGraph G,float alpha, float betha) {
-	TIntPrV in,out;TIntPr val;
-	TSnap::GetNodeInDegV(G,in);
-	TSnap::GetNodeOutDegV(G,out);
-	int count = G->GetNodes();
-
-
-    Eigen::Matrix2d adj(count, count);
-	for (int i = 0; i < count; i++) {
-		adj(i, i) = 1;
-	}
-    Eigen::Matrix2d di(count, count), doo(count, count);
-	for (int i = 0; i < count; val = in[i++]) {
-		TInt a, b;
-		val.GetVal(a, b);
-		if(ids.find(a)==ids.end())
-			ids[a] = ids.size();
-		idsrev[ids[a]] = a;
-		di(ids[a], ids[a]) = pow((double)b.Val+ 1.0,-1*betha);
-	}
-	for (int i = 0; i < count; val = out[i++]) {
-		TInt a, b;
-		val.GetVal(a, b);
-		if (ids.find(a) == ids.end())
-			ids[a] = ids.size();
-		idsrev[ids[a]] = a;
-		doo(ids[a], ids[a]) = pow((double)b.Val + 1.0, -1 * alpha);
-	}
-
-
-	for (TNGraph::TEdgeI  s = G->BegEI(); s!=G->EndEI(); s++) {
-		if(s.GetSrcNId()!= s.GetDstNId())
-			adj(ids[s.GetSrcNId()], ids[s.GetDstNId()]) = 1;
-	}
-
-	Eigen::Matrix2d adj_trans = adj.transpose();
-
-    Eigen::Matrix2d bd =(doo)*(adj)*(di)*(adj_trans)*(doo);
-
-    Eigen::Matrix2d cd = (di)*(adj)*(doo)*(adj_trans)*(di);
-
-    Eigen::Matrix2d u = (bd + cd);
-
-
-    //get location of maximum
-    Eigen::MatrixXf::Index maxRow, maxCol;
-    double max = u.maxCoeff(&maxRow, &maxCol);
-    //get location of minimum
-    Eigen::MatrixXf::Index minRow, minCol;
-    double min = u.minCoeff(&minRow, &minCol);
-
-    Eigen::Matrix2d res=((u.array() - min)/(max-min)).matrix();
-
-	return res;
-}
 double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 {
 	double *IN_d = new double[count];
@@ -140,22 +84,4 @@ void SymSnap::PrintSym(Eigen::SparseMatrix<double>g, std::map<int, std::string> 
     }
     fclose(index);
 }
-void SymSnap::PrintSym(Eigen::Matrix2d g, std::map<int, std::string> listi, const char *path,double prone) {
-    FILE *symfile = fopen(path, "w");
-
-    for (int k = 0; k < g.outerSize(); ++k) {
-        for (int j = 0; j < g.innerSize(); ++j)
-        {
-            if(g(k,j)>prone)
-                fprintf(symfile,"%ld,%ld,%f\n",k+1,j+1,g(k,j));
-        }
-    }
-    fclose(symfile);
-    FILE *index = fopen((std::string(path)+".index").c_str(), "w");
-    fprintf(index,"%ld\n",g.outerSize());
-    for(int i =0 ; i<g.outerSize(); i++)
-    {
-        fprintf(index,"%d,%s\n",i+1,listi[idsrev[i]].c_str());
-    }
-    fclose(index);
-}
+;
