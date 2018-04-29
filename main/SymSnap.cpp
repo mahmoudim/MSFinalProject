@@ -1,4 +1,4 @@
-#include "SymSnap.h"
+#include "stdafx.h"
 
 std::map<int, int> ids, idsrev;
 
@@ -43,10 +43,87 @@ Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, flo
 
 	Eigen::SparseMatrix<double> cd = (di)*(adj)*(doo)*(adj_trans)*(di);
 
-	Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold,1);
+    Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold,1);
 
-	return u;
+    return u;
+};
+
+Eigen::SparseMatrix<double> SymSnap::DegreeDiscountedProposed(PNGraph G,float alpha, float betha,float treshold,csv::Parser reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
+    TIntPrV in,out;TIntPr val;
+    TSnap::GetNodeInDegV(G,in);
+    TSnap::GetNodeOutDegV(G,out);
+    int count = G->GetNodes();
+
+
+    Eigen::SparseMatrix<double> *bd;
+    Eigen::SparseMatrix<double> *cd;
+
+    {
+
+    Eigen::SparseMatrix<double> adj(count, count);
+    for (int i = 0; i < count; i++) {
+        adj.insert(i, i) = 1;
+    }
+    Eigen::SparseMatrix<double> di(count, count), doo(count, count);
+    for (int i = 0; i < count; val = in[i++]) {
+        TInt a, b;
+        val.GetVal(a, b);
+        if(ids.find(a)==ids.end())
+            ids[a] = ids.size();
+        idsrev[ids[a]] = a;
+        di.insert(ids[a], ids[a]) = pow((double)b.Val+ 1.0,-1*betha);
+    }
+    for (int i = 0; i < count; val = out[i++]) {
+        TInt a, b;
+        val.GetVal(a, b);
+        if (ids.find(a) == ids.end())
+            ids[a] = ids.size();
+        idsrev[ids[a]] = a;
+        doo.insert(ids[a], ids[a]) = pow((double)b.Val + 1.0, -1 * alpha);
+    }
+
+
+    for (TNGraph::TEdgeI  s = G->BegEI(); s!=G->EndEI(); s++) {
+        if(s.GetSrcNId()!= s.GetDstNId())
+            adj.insert(ids[s.GetSrcNId()], ids[s.GetDstNId()]) = 1;
+    }
+        Eigen::Transpose<Eigen::SparseMatrix<double>> adj_trans = adj.transpose();
+
+        bd = new Eigen::SparseMatrix<double> ((doo) * (adj) * (di) * (adj_trans) * (doo));
+
+        cd = new Eigen::SparseMatrix<double> ((di) * (adj) * (doo) * (adj_trans) * (di));
+    }
+
+    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> (*bd + *cd);
+    delete(bd);
+    delete(cd);
+
+    double max=0;
+    for (int k=0; k<u->outerSize(); ++k)
+        for (Eigen::SparseMatrix<double>::InnerIterator it(*u,k); it; ++it)
+        {
+            if(it.value()>max)
+                max=it.value();
+
+        }
+    Eigen::SparseMatrix<double> *d=new Eigen::SparseMatrix<double> ((*u/(max)));
+    delete(u);
+
+    for (int k=0; k<d->outerSize(); ++k)
+        for (Eigen::SparseMatrix<double>::InnerIterator it(*d,k); it; ++it)
+        {
+            long double  data;
+            try {
+                data=reader[listIds[listi[idsrev[it.row()]]]][listIds[listi[idsrev[it.col()]]]];
+                it.valueRef() =(it.value()+data)/2;
+            } catch (csv::Error &e) {
+
+            }
+        }
+    return d->pruned(treshold,1);
+    delete(d);
 }
+
 double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 {
 	double *IN_d = new double[count];

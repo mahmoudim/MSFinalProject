@@ -1,4 +1,7 @@
 #pragma once
+#ifndef STDAFX
+#define STDAFX
+
 #define NOMINMAX
 #include "targetver.h"
 #include <Eigen/Sparse>
@@ -13,5 +16,8 @@
 #include <streambuf>
 #include <algorithm>
 #include <cstdio>
+#include "csv.h"
 #include "SymSnap.h"
 #include "SpectralClustering.h"
+
+#endif

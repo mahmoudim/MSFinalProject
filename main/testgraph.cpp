@@ -1,33 +1,18 @@
 #include "stdafx.h"
 
-#define graphPath "../graph.g"
-#define SymGraphPath "SymGraph.g"
+#define graphPath "graph.g"
+#define docSim "simHelinger.csv"
+#define confFile "conf.csv"
+#define docSimiDS "new_ids.txt"
+#define SymGraphPath "/SymGraph.g"
 
 
 int main(int argc, char *argv[]) {
-
-    float alpha = 0.5, betha = 0.5, proneTreshold = 0.025;
-
     int numthreads=4;
 #pragma region getargs
 
     if(argc>=2) {
-        std::string Salpha = std::string(argv[1]);
-        alpha = std::stof(Salpha);
-        printf("alpha: %f\n",alpha);
-    }
-    if(argc>=3) {
-        std::string Sbetha = std::string(argv[2]);
-        betha = std::stof(Sbetha);
-        printf("betha: %f\n",betha);
-    }
-    if(argc>=4) {
-        std::string Sprone = std::string(argv[3]);
-        proneTreshold=std::stof(Sprone);
-        printf("proneTreshold: %f\n",proneTreshold);
-    }
-    if(argc>=5) {
-        std::string Snumthreads = std::string(argv[4]);
+        std::string Snumthreads = std::string(argv[1]);
         numthreads=std::stoi(Snumthreads);
     }
 
@@ -43,6 +28,7 @@ int main(int argc, char *argv[]) {
 
     std::map<std::string, int> list;
     std::map<int, std::string> listi;
+    std::map<std::string,int> listIds;
 
     FILE *file = fopen(graphPath, "r");
 
@@ -70,11 +56,53 @@ int main(int argc, char *argv[]) {
 
     TIntV lis;
 
+    //read Similarity
+
+    FILE *ids=fopen(docSimiDS,"r");
+    char name[10];
+    while(fscanf(ids,"%s\n",name)!=EOF)
+    {
+        listIds[std::string(name)]=listIds.size();
+    }
+
+
+    csv::Parser reader = csv::Parser(docSim);
+    csv::Parser confreader = csv::Parser(confFile);
+
+    printf("loading finished!\n");
+
     //degree discounted
+    double alpha,betha,proneTreshold;
+    try {
+        for (int i = 0;; ) {
+            alpha = confreader[0][i];
+            i++;
+            try {
+                for (int j = 0;; ) {
+                    betha = confreader[1][j];
+                    j++;
+                    try {
+                        for (int k = 0;; ) {
+                            proneTreshold = confreader[2][k];
+                            k++;
+                            printf("%.4f-%.4f-%.4f",alpha,betha,proneTreshold);
+                            Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscountedProposed(F, alpha, betha,proneTreshold,reader, listi,listIds);
+                            //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+                            char dir[20];
+                            sprintf(dir,"%.4f-%.4f-%.4f",alpha,betha,proneTreshold);
+                            system((std::string("mkdir ")+dir).c_str());
+                            SymSnap::PrintSym(g, listi, (std::string(dir)+SymGraphPath).c_str());
+                        }
+                    } catch (csv::Error &e) {
 
-    Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+                    }
+                }
+            }  catch (csv::Error &e) {
 
-    SymSnap::PrintSym(g,listi,SymGraphPath);
+            }
+        }
+    }  catch (csv::Error &e) {
 
+    }
     return 0;
 }
