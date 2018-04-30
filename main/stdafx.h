@@ -19,5 +19,6 @@
 #include "csv.h"
 #include "SymSnap.h"
 #include "SpectralClustering.h"
+#include "ctpl_stl.h"
 
 #endif

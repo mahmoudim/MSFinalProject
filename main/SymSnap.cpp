@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
-std::map<int, int> ids, idsrev;
 
-Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
+SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
+    std::map<int, int> ids, idsrev;
 	TIntPrV in,out;TIntPr val;
 	TSnap::GetNodeInDegV(G,in);
     TSnap::GetNodeOutDegV(G,out);
@@ -45,10 +45,11 @@ Eigen::SparseMatrix<double> SymSnap::DegreeDiscounted(PNGraph G,float alpha, flo
 
     Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold,1);
 
-    return u;
+    return new  DegreDiscountedRes(u,idsrev);
 };
 
-Eigen::SparseMatrix<double> SymSnap::DegreeDiscountedProposed(PNGraph G,float alpha, float betha,float treshold,csv::Parser reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
+SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float alpha, float betha,float treshold,csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
+    std::map<int, int> ids, idsrev;
     TIntPrV in,out;TIntPr val;
     TSnap::GetNodeInDegV(G,in);
     TSnap::GetNodeOutDegV(G,out);
@@ -120,8 +121,8 @@ Eigen::SparseMatrix<double> SymSnap::DegreeDiscountedProposed(PNGraph G,float al
 
             }
         }
-    return d->pruned(treshold,1);
-    delete(d);
+    return new  DegreDiscountedRes( d->pruned(treshold,1),idsrev);
+
 }
 
 double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
@@ -143,9 +144,9 @@ double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 	}
 	return res;
 }
-void SymSnap::PrintSym(Eigen::SparseMatrix<double>g, std::map<int, std::string> listi, const char *path) {
+void SymSnap::PrintSym(DegreDiscountedRes * res, std::map<int, std::string> listi, const char *path) {
 	FILE *symfile = fopen(path, "w");
-
+    Eigen::SparseMatrix<double> &g(res->res);
 	for (int k = 0; k < g.outerSize(); ++k) {
 		for (Eigen::SparseMatrix<double>::InnerIterator it(g, k); it; ++it)
 		{
@@ -157,7 +158,7 @@ void SymSnap::PrintSym(Eigen::SparseMatrix<double>g, std::map<int, std::string> 
     fprintf(index,"%ld\n",g.outerSize());
     for(int i =0 ; i<g.outerSize(); i++)
     {
-        fprintf(index,"%d,%s\n",i+1,listi[idsrev[i]].c_str());
+        fprintf(index,"%d,%s\n",i+1,listi[res->idsrev[i]].c_str());
     }
     fclose(index);
 }

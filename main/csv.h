@@ -27,12 +27,12 @@ namespace csv
 
     public:
         unsigned int size(void) const;
-        void push(long double*);
-        bool set(const std::string &, const long double &);
+        void push( double*);
+        bool set(const std::string &, const  double &);
 
     private:
         const std::vector<std::string> _header;
-        std::vector<long double> _values;
+        std::vector< double> _values;
 
     public:
 
@@ -49,8 +49,8 @@ namespace csv
             }
             throw Error("can't return this value (doesn't exist)");
         }
-        const long double operator[](int) const;
-        const long double operator[](const std::string &valueName) const;
+        const double operator[](int) const;
+        const double operator[](const std::string &valueName) const;
         friend std::ostream& operator<<(std::ostream& os, const Row &row);
         friend std::ofstream& operator<<(std::ofstream& os, const Row &row);
     };
@@ -77,7 +77,7 @@ namespace csv
 
     public:
         bool deleteRow(unsigned int row);
-        bool addRow(unsigned int pos, const std::vector<long double> &);
+        bool addRow(unsigned int pos, const std::vector< double> &);
         void sync(void) const;
 
     protected:

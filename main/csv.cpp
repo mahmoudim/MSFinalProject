@@ -24,13 +24,13 @@ namespace csv {
                     {
                         if (line.at(i) == ',')
                         {
-                            row->push(new long double(std::stold(line.substr(tokenStart, i - tokenStart))));
+                            row->push(new double(std::stold(line.substr(tokenStart, i - tokenStart))));
                             tokenStart = i + 1;
                         }
                     }
 
                     //end
-                    row->push(new long double(std::stold(line.substr(tokenStart, line.length() - tokenStart))));
+                    row->push(new double(std::stold(line.substr(tokenStart, line.length() - tokenStart))));
                     _content.push_back(row);
                 }
             }
@@ -78,13 +78,13 @@ namespace csv {
                     quoted = ((quoted) ? (false) : (true));
                 else if (it->at(i) == ',' && !quoted)
                 {
-                    row->push(new long double(std::stold(it->substr(tokenStart, i - tokenStart))));
+                    row->push(new double(std::stold(it->substr(tokenStart, i - tokenStart))));
                     tokenStart = i + 1;
                 }
             }
 
             //end
-            row->push(new long double(std::stold(it->substr(tokenStart, it->length() - tokenStart))));
+            row->push(new double(std::stold(it->substr(tokenStart, it->length() - tokenStart))));
 
             // if value(s) missing
             if (row->size() != _header.size())
@@ -139,12 +139,12 @@ namespace csv {
         return false;
     }
 
-    bool Parser::addRow(unsigned int pos, const std::vector<long double> &r)
+    bool Parser::addRow(unsigned int pos, const std::vector<double> &r)
     {
         Row *row = new Row(_header);
 
         for (auto it = r.begin(); it != r.end(); it++)
-            row->push(new long double(*it));
+            row->push(new double(*it));
 
         if (pos <= _content.size())
         {
@@ -198,12 +198,12 @@ namespace csv {
         return _values.size();
     }
 
-    void Row::push(long double * value)
+    void Row::push( double * value)
     {
         _values.push_back(*value);
     }
 
-    bool Row::set(const std::string &key, const long double &value)
+    bool Row::set(const std::string &key, const  double &value)
     {
         std::vector<std::string>::const_iterator it;
         int pos = 0;
@@ -220,14 +220,14 @@ namespace csv {
         return false;
     }
 
-    const long double Row::operator[](int valuePosition) const
+    const  double Row::operator[](int valuePosition) const
     {
         if (valuePosition < _values.size()&&valuePosition>=0)
             return _values[valuePosition];
         throw Error("can't return this value (doesn't exist)");
     }
 
-    const long double Row::operator[](const std::string &key) const
+    const double Row::operator[](const std::string &key) const
     {
         std::vector<std::string>::const_iterator it;
         int pos = 0;

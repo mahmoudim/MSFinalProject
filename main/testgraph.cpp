@@ -5,7 +5,35 @@
 #define confFile "conf.csv"
 #define docSimiDS "new_ids.txt"
 #define SymGraphPath "/SymGraph.g"
+struct operation{
+    double alpha;
+    double betha;
+    double prune;
+    PNGraph &G;
+    csv::Parser &reader;
+    std::map<int, std::string> &listi;
+    std::map<std::string,int> &listIds;
+    operation(double alpha, double betha, double prune, PNGraph &G, csv::Parser &reader,
+                  std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
+            : G(G), listIds(listIds), listi(listi), reader(reader) {
+        this->alpha=alpha;
+        this->betha=betha;
+        this->prune=prune;
+    }
+};
 
+void executeTask(int id,operation *op)
+{
+    printf("%.4f-%.4f-%.4f\n",op->alpha,op->betha,op->prune);
+    SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposed(op->G, op->alpha,op->betha,op->prune,op->reader, op->listi,op->listIds);
+    //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+    char dir[20];
+    sprintf(dir,"%.4f-%.4f-%.4f",op->alpha,op->betha,op->prune);
+    system((std::string("mkdir ")+dir).c_str());
+    SymSnap::PrintSym(g, op->listi, (std::string(dir)+SymGraphPath).c_str());
+    system((std::string("gzip -f ")+(std::string(dir)+SymGraphPath)).c_str());
+    delete(op);
+}
 
 int main(int argc, char *argv[]) {
     int numthreads=4;
@@ -69,6 +97,8 @@ int main(int argc, char *argv[]) {
     csv::Parser reader = csv::Parser(docSim);
     csv::Parser confreader = csv::Parser(confFile);
 
+    ctpl::thread_pool p(numthreads);
+
     printf("loading finished!\n");
 
     //degree discounted
@@ -85,13 +115,7 @@ int main(int argc, char *argv[]) {
                         for (int k = 0;; ) {
                             proneTreshold = confreader[2][k];
                             k++;
-                            printf("%.4f-%.4f-%.4f",alpha,betha,proneTreshold);
-                            Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscountedProposed(F, alpha, betha,proneTreshold,reader, listi,listIds);
-                            //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
-                            char dir[20];
-                            sprintf(dir,"%.4f-%.4f-%.4f",alpha,betha,proneTreshold);
-                            system((std::string("mkdir ")+dir).c_str());
-                            SymSnap::PrintSym(g, listi, (std::string(dir)+SymGraphPath).c_str());
+                            p.push(executeTask, new operation(alpha, betha, proneTreshold, F, reader, listi,listIds));
                         }
                     } catch (csv::Error &e) {
 
@@ -103,6 +127,10 @@ int main(int argc, char *argv[]) {
         }
     }  catch (csv::Error &e) {
 
+    }
+    while (p.n_idle()!=p.size())
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     }
     return 0;
 }

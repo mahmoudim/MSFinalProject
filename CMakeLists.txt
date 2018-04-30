@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 project (MainProject)
 
-add_executable(MainProject main/csv.h main/csv.cpp main/testgraph.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h main/csv.cpp)
+add_executable(MainProject main/ctpl_stl.h main/csv.h main/csv.cpp main/testgraph.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h main/csv.cpp)
 
 add_executable(Evaluation main/csv.h main/csv.cpp Evaluation/directedModularity.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp)
 
