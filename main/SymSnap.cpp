@@ -60,34 +60,34 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
     Eigen::SparseMatrix<double> *cd;
 
     {
+        Eigen::SparseMatrix<double> adj(count, count);
 
-    Eigen::SparseMatrix<double> adj(count, count);
-    for (int i = 0; i < count; i++) {
-        adj.insert(i, i) = 1;
-    }
-    Eigen::SparseMatrix<double> di(count, count), doo(count, count);
-    for (int i = 0; i < count; val = in[i++]) {
+        for (int i = 0; i < count; i++) {
+            adj.insert(i, i) = 1;
+        }
+
+        Eigen::SparseMatrix<double> di(count, count), doo(count, count);
         TInt a, b;
-        val.GetVal(a, b);
-        if(ids.find(a)==ids.end())
-            ids[a] = ids.size();
-        idsrev[ids[a]] = a;
-        di.insert(ids[a], ids[a]) = pow((double)b.Val+ 1.0,-1*betha);
-    }
-    for (int i = 0; i < count; val = out[i++]) {
-        TInt a, b;
-        val.GetVal(a, b);
-        if (ids.find(a) == ids.end())
-            ids[a] = ids.size();
-        idsrev[ids[a]] = a;
-        doo.insert(ids[a], ids[a]) = pow((double)b.Val + 1.0, -1 * alpha);
-    }
+        for (int i = 0; i < count; val = in[i++]) {
+            val.GetVal(a, b);
+            if(ids.find(a.Val)==ids.end())
+                ids[a.Val] = ids.size();
+            idsrev[ids[a.Val]] = a.Val;
+            di.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val+ 1.0,-1*betha);
+        }
+        for (int i = 0; i < count; val = out[i++]) {
+            val.GetVal(a, b);
+            if (ids.find(a.Val) == ids.end())
+                ids[a.Val] = ids.size();
+            idsrev[ids[a.Val]] = a.Val;
+            doo.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val + 1.0, -1 * alpha);
+        }
 
 
-    for (TNGraph::TEdgeI  s = G->BegEI(); s!=G->EndEI(); s++) {
-        if(s.GetSrcNId()!= s.GetDstNId())
-            adj.insert(ids[s.GetSrcNId()], ids[s.GetDstNId()]) = 1;
-    }
+        for (TNGraph::TEdgeI  s = G->BegEI(); s!=G->EndEI(); s++) {
+            if(s.GetSrcNId()!= s.GetDstNId())
+                adj.insert(ids[s.GetSrcNId()], ids[s.GetDstNId()]) = 1;
+        }
         Eigen::Transpose<Eigen::SparseMatrix<double>> adj_trans = adj.transpose();
 
         bd = new Eigen::SparseMatrix<double> ((doo) * (adj) * (di) * (adj_trans) * (doo));
