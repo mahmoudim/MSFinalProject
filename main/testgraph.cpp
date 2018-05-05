@@ -9,13 +9,21 @@ struct operation{
     double alpha;
     double betha;
     double prune;
+    std::vector<std::pair<double,double>> &tasks;
     PNGraph &G;
     csv::Parser &reader;
     std::map<int, std::string> &listi;
     std::map<std::string,int> &listIds;
     operation(double alpha, double betha, double prune, PNGraph &G, csv::Parser &reader,
                   std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader) {
+            : G(G), listIds(listIds), listi(listi), reader(reader) ,tasks(* new std::vector<std::pair<double,double>>()){
+        this->alpha=alpha;
+        this->betha=betha;
+        this->prune=prune;
+    }
+    operation(double alpha, double betha, std::vector<std::pair<double,double>> tasks, PNGraph &G, csv::Parser &reader,
+              std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
+            : G(G), listIds(listIds), listi(listi), reader(reader),tasks(tasks) {
         this->alpha=alpha;
         this->betha=betha;
         this->prune=prune;
@@ -25,14 +33,21 @@ struct operation{
 void executeTask(int id,operation *op)
 {
     printf("%.4f-%.4f-%.4f\n",op->alpha,op->betha,op->prune);
-    SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposed(op->G, op->alpha,op->betha,op->prune,op->reader, op->listi,op->listIds);
-    //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
-    char dir[20];
-    sprintf(dir,"%.4f-%.4f-%.4f",op->alpha,op->betha,op->prune);
-    system((std::string("mkdir ")+dir).c_str());
-    SymSnap::PrintSym(g, op->listi, (std::string(dir)+SymGraphPath).c_str());
-    system((std::string("gzip -f ")+(std::string(dir)+SymGraphPath)).c_str());
+    SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
+
+    for (int i = 0; i < op->tasks.size(); ++i) {
+        std::pair<double ,double > t=op->tasks[i];
+        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineAndPruneProposedParalel(g,t.first,t.second, op->reader, op->listi, op->listIds);
+        //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+        char dir[20];
+        sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t.first,t.second);
+        system((std::string("mkdir ") + dir).c_str());
+        SymSnap::PrintSym(g1, op->listi, (std::string(dir) + SymGraphPath).c_str());
+        system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
+        delete(g1);
+    }
     delete(op);
+    delete(g);
 }
 
 int main(int argc, char *argv[]) {
@@ -100,9 +115,27 @@ int main(int argc, char *argv[]) {
     ctpl::thread_pool p(numthreads);
 
     printf("loading finished!\n");
+    std::vector<std::pair<double,double>> tasks;
+    double g,proneTreshold;
+    try {
+        for (int i = 0;; ) {
+            proneTreshold = confreader[2][i];
+            i++;
+            try {
+                for (int j = 0;; ) {
+                    g = confreader[3][j];
+                    j++;
+                    tasks.push_back(std::pair<double,double>(proneTreshold,g));
+                }
+            }  catch (csv::Error &e) {
 
+            }
+        }
+    }  catch (csv::Error &e) {
+
+    }
     //degree discounted
-    double alpha,betha,proneTreshold;
+    double alpha,betha;
     try {
         for (int i = 0;; ) {
             alpha = confreader[0][i];
@@ -110,16 +143,7 @@ int main(int argc, char *argv[]) {
             try {
                 for (int j = 0;; ) {
                     betha = confreader[1][j];
-                    j++;
-                    try {
-                        for (int k = 0;; ) {
-                            proneTreshold = confreader[2][k];
-                            k++;
-                            p.push(executeTask, new operation(alpha, betha, proneTreshold, F, reader, listi,listIds));
-                        }
-                    } catch (csv::Error &e) {
-
-                    }
+                    p.push(executeTask, new operation(alpha, betha, tasks, F, reader, listi,listIds));
                 }
             }  catch (csv::Error &e) {
 
