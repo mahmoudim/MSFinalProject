@@ -131,16 +131,16 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
 SymSnap::DegreDiscountedRes * SymSnap::ConbineAndPruneProposedParalel(DegreDiscountedRes *res, float treshold,float g,
                                                                       csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
-    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> ();
-    for (int k=0; k<res->res.outerSize(); ++k)
-        for (Eigen::SparseMatrix<double>::InnerIterator it(res->res,k); it; ++it)
+    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> (res->res);
+    for (int k=0; k<u->outerSize(); ++k)
+        for (Eigen::SparseMatrix<double>::InnerIterator it(*u,k); it; ++it)
         {
             long double  data;
             try {
                 data=reader[listIds[listi[res->idsrev[it.row()]]]][listIds[listi[res->idsrev[it.col()]]]];
-                u->insert(it.row(),it.col()) =it.value()*(1-g)+data*g;
+                it.valueRef() =it.value()*(1-g)+data*g;
             } catch (csv::Error &e) {
-                u->insert(it.row(),it.col()) =(it.value());
+
             }
         }
     DegreDiscountedRes *ddd=new  DegreDiscountedRes( *new Eigen::SparseMatrix<double>(u->pruned(treshold,1)),res->idsrev);
