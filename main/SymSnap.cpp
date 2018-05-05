@@ -2,7 +2,7 @@
 
 
 SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
-    std::map<int, int> ids, idsrev;
+    std::map<int, int> ids,  *idsrev1= new std::map<int, int>(),& idsrev= *idsrev1;
 	TIntPrV in,out;TIntPr val;
 	TSnap::GetNodeInDegV(G,in);
     TSnap::GetNodeOutDegV(G,out);
@@ -45,11 +45,11 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, f
 
     Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double>((bd + cd).pruned(treshold,1));
 
-    return new  DegreDiscountedRes(*u,idsrev);
+    return new  DegreDiscountedRes(u,idsrev1);
 };
 
 SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float alpha, float betha,float treshold,csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
-    std::map<int, int> ids, idsrev;
+    std::map<int, int> ids, *idsrev1= new std::map<int, int>(),& idsrev= *idsrev1;
     TIntPrV in,out;TIntPr val;
     TSnap::GetNodeInDegV(G,in);
     TSnap::GetNodeOutDegV(G,out);
@@ -123,7 +123,7 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
             }
         }
-    DegreDiscountedRes *ddd=new  DegreDiscountedRes( *new Eigen::SparseMatrix<double>(d->pruned(treshold,1)),idsrev);
+    DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(d->pruned(treshold,1)),idsrev1);
     delete (d);
     return ddd;
 
@@ -131,25 +131,25 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
 SymSnap::DegreDiscountedRes * SymSnap::ConbineAndPruneProposedParalel(DegreDiscountedRes *res, float treshold,float g,
                                                                       csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
-    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> (res->res);
+    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> (*res->res);
     for (int k=0; k<u->outerSize(); ++k)
         for (Eigen::SparseMatrix<double>::InnerIterator it(*u,k); it; ++it)
         {
             long double  data;
             try {
-                data=reader[listIds[listi[res->idsrev[it.row()]]]][listIds[listi[res->idsrev[it.col()]]]];
+                data=reader[listIds[listi[(*res->idsrev)[it.row()]]]][listIds[listi[(*res->idsrev)[it.col()]]]];
                 it.valueRef() =it.value()*(1-g)+data*g;
             } catch (csv::Error &e) {
 
             }
         }
-    DegreDiscountedRes *ddd=new  DegreDiscountedRes( *new Eigen::SparseMatrix<double>(u->pruned(treshold,1)),res->idsrev);
+    DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(u->pruned(treshold,1)),res->idsrev);
     delete u;
     return ddd;
 }
 
 SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposedParalel(PNGraph &G, float alpha, float betha) {
-    std::map<int, int> ids, idsrev;
+    std::map<int, int> ids, *idsrev1=new std::map<int, int> () ,&idsrev=*idsrev1;
     TIntPrV in,out;TIntPr val;
     TSnap::GetNodeInDegV(G,in);
     TSnap::GetNodeOutDegV(G,out);
@@ -168,17 +168,19 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposedParalel(PNGraph &
 
         Eigen::SparseMatrix<double> di(count, count), doo(count, count);
         TInt a, b;
+        int poss=0;
         for (int i = 0; i < count; val = in[i++]) {
             val.GetVal(a, b);
             if(ids.find(a.Val)==ids.end())
-                ids[a.Val] = ids.size();
+                ids[a.Val] = poss++;
+
             idsrev[ids[a.Val]] = a.Val;
             di.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val+ 1.0,-1*betha);
         }
         for (int i = 0; i < count; val = out[i++]) {
             val.GetVal(a, b);
             if (ids.find(a.Val) == ids.end())
-                ids[a.Val] = ids.size();
+                ids[a.Val] = poss++;
             idsrev[ids[a.Val]] = a.Val;
             doo.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val + 1.0, -1 * alpha);
         }
@@ -209,7 +211,7 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposedParalel(PNGraph &
         }
     Eigen::SparseMatrix<double> *d=new Eigen::SparseMatrix<double> ((*u/(max)));
     delete(u);
-    return new  DegreDiscountedRes( *d,idsrev);
+    return new  DegreDiscountedRes( d,idsrev1);
 }
 
 
@@ -234,7 +236,7 @@ double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 }
 void SymSnap::PrintSym(DegreDiscountedRes * res, std::map<int, std::string> listi, const char *path) {
 	FILE *symfile = fopen(path, "w");
-    Eigen::SparseMatrix<double> &g(res->res);
+    Eigen::SparseMatrix<double> &g(*res->res);
 	for (int k = 0; k < g.outerSize(); ++k) {
 		for (Eigen::SparseMatrix<double>::InnerIterator it(g, k); it; ++it)
 		{
@@ -246,7 +248,7 @@ void SymSnap::PrintSym(DegreDiscountedRes * res, std::map<int, std::string> list
     fprintf(index,"%ld\n",g.outerSize());
     for(int i =0 ; i<g.outerSize(); i++)
     {
-        fprintf(index,"%d,%s\n",i+1,listi[res->idsrev[i]].c_str());
+        fprintf(index,"%d,%s\n",i+1,listi[(*res->idsrev)[i]].c_str());
     }
     fclose(index);
 }
