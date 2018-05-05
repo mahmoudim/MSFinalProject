@@ -9,6 +9,7 @@ struct operation{
     double alpha;
     double betha;
     double prune;
+    double prune;
     PNGraph &G;
     csv::Parser &reader;
     std::map<int, std::string> &listi;
@@ -33,6 +34,7 @@ void executeTask(int id,operation *op)
     SymSnap::PrintSym(g, op->listi, (std::string(dir)+SymGraphPath).c_str());
     system((std::string("gzip -f ")+(std::string(dir)+SymGraphPath)).c_str());
     delete(op);
+    delete(g);
 }
 
 int main(int argc, char *argv[]) {

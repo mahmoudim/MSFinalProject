@@ -43,7 +43,7 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, f
 
 	Eigen::SparseMatrix<double> cd = (di)*(adj)*(doo)*(adj_trans)*(di);
 
-    Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold,1);
+    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double>((bd + cd).pruned(treshold,1));
 
     return new  DegreDiscountedRes(u,idsrev);
 };
@@ -68,17 +68,19 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
         Eigen::SparseMatrix<double> di(count, count), doo(count, count);
         TInt a, b;
+        int poss=0;
         for (int i = 0; i < count; val = in[i++]) {
             val.GetVal(a, b);
             if(ids.find(a.Val)==ids.end())
-                ids[a.Val] = ids.size();
+                ids[a.Val] = poss++;
+
             idsrev[ids[a.Val]] = a.Val;
             di.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val+ 1.0,-1*betha);
         }
         for (int i = 0; i < count; val = out[i++]) {
             val.GetVal(a, b);
             if (ids.find(a.Val) == ids.end())
-                ids[a.Val] = ids.size();
+                ids[a.Val] = poss++;
             idsrev[ids[a.Val]] = a.Val;
             doo.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val + 1.0, -1 * alpha);
         }
@@ -121,7 +123,9 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
             }
         }
-    return new  DegreDiscountedRes( d->pruned(treshold,1),idsrev);
+    DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(d->pruned(treshold,1)),idsrev);
+    delete (d);
+    return ddd;
 
 }
 
@@ -146,7 +150,7 @@ double SymSnap::getDirectedModularity(PNGraph G, int *Clusters,int count)
 }
 void SymSnap::PrintSym(DegreDiscountedRes * res, std::map<int, std::string> listi, const char *path) {
 	FILE *symfile = fopen(path, "w");
-    Eigen::SparseMatrix<double> &g(res->res);
+    Eigen::SparseMatrix<double> &g(*res->res);
 	for (int k = 0; k < g.outerSize(); ++k) {
 		for (Eigen::SparseMatrix<double>::InnerIterator it(g, k); it; ++it)
 		{
