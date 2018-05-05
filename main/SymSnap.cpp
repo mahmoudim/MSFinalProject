@@ -43,9 +43,9 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, f
 
 	Eigen::SparseMatrix<double> cd = (di)*(adj)*(doo)*(adj_trans)*(di);
 
-    Eigen::SparseMatrix<double> u = (bd + cd).pruned(treshold,1);
+    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double>((bd + cd).pruned(treshold,1));
 
-    return new  DegreDiscountedRes(u,idsrev);
+    return new  DegreDiscountedRes(*u,idsrev);
 };
 
 SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float alpha, float betha,float treshold,csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
@@ -68,17 +68,19 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
         Eigen::SparseMatrix<double> di(count, count), doo(count, count);
         TInt a, b;
+        int poss=0;
         for (int i = 0; i < count; val = in[i++]) {
             val.GetVal(a, b);
             if(ids.find(a.Val)==ids.end())
-                ids[a.Val] = ids.size();
+                ids[a.Val] = poss++;
+
             idsrev[ids[a.Val]] = a.Val;
             di.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val+ 1.0,-1*betha);
         }
         for (int i = 0; i < count; val = out[i++]) {
             val.GetVal(a, b);
             if (ids.find(a.Val) == ids.end())
-                ids[a.Val] = ids.size();
+                ids[a.Val] = poss++;
             idsrev[ids[a.Val]] = a.Val;
             doo.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val + 1.0, -1 * alpha);
         }
@@ -121,7 +123,9 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 
             }
         }
-    return new  DegreDiscountedRes( d->pruned(treshold,1),idsrev);
+    DegreDiscountedRes *ddd=new  DegreDiscountedRes( *new Eigen::SparseMatrix<double>(d->pruned(treshold,1)),idsrev);
+    delete (d);
+    return ddd;
 
 }
 
@@ -139,7 +143,9 @@ SymSnap::DegreDiscountedRes * SymSnap::ConbineAndPruneProposedParalel(DegreDisco
                 u->insert(it.row(),it.col()) =(it.value());
             }
         }
-    return new  DegreDiscountedRes( u->pruned(treshold,1),res->idsrev);
+    DegreDiscountedRes *ddd=new  DegreDiscountedRes( *new Eigen::SparseMatrix<double>(u->pruned(treshold,1)),res->idsrev);
+    delete u;
+    return ddd;
 }
 
 SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposedParalel(PNGraph &G, float alpha, float betha) {

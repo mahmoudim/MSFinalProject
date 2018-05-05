@@ -32,7 +32,7 @@ struct operation{
 
 void executeTask(int id,operation *op)
 {
-    printf("%.4f-%.4f-%.4f\n",op->alpha,op->betha,op->prune);
+    printf("%.4f-%.4f\n",op->alpha,op->betha);
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
 
     for (int i = 0; i < op->tasks.size(); ++i) {
@@ -41,6 +41,7 @@ void executeTask(int id,operation *op)
         //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
         char dir[20];
         sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t.first,t.second);
+        printf("%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t.first,t.second);
         system((std::string("mkdir ") + dir).c_str());
         SymSnap::PrintSym(g1, op->listi, (std::string(dir) + SymGraphPath).c_str());
         system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
@@ -143,6 +144,7 @@ int main(int argc, char *argv[]) {
             try {
                 for (int j = 0;; ) {
                     betha = confreader[1][j];
+                    j++;
                     p.push(executeTask, new operation(alpha, betha, tasks, F, reader, listi,listIds));
                 }
             }  catch (csv::Error &e) {

@@ -1,6 +1,7 @@
 MainProject.sublime-workspace
 build/
 cmake-build-debug/
+cmake-build-release/
 .idea/
 preds.names
 SymGraph.g
