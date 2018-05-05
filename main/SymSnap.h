@@ -9,6 +9,9 @@ namespace SymSnap {
 		Eigen::SparseMatrix<double> *res;
 		std::map<int, int> *idsrev;
 		DegreDiscountedRes(Eigen::SparseMatrix<double> *res,std::map<int, int> *idsrev):res(res),idsrev(idsrev){}
+        ~DegreDiscountedRes(){
+            delete (res);
+        }
 
 	};
 	DegreDiscountedRes * DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);

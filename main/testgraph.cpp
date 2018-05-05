@@ -9,19 +9,23 @@ struct operation{
     double alpha;
     double betha;
     double prune;
-    std::vector<std::pair<double,double>> &tasks;
+    struct task{
+        double prune;
+        double g;
+    };
+    std::vector<task*> &tasks;
     PNGraph &G;
     csv::Parser &reader;
     std::map<int, std::string> &listi;
     std::map<std::string,int> &listIds;
     operation(double alpha, double betha, double prune, PNGraph &G, csv::Parser &reader,
                   std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader) ,tasks(* new std::vector<std::pair<double,double>>()){
+            : G(G), listIds(listIds), listi(listi), reader(reader) ,tasks(* new std::vector<task*>()){
         this->alpha=alpha;
         this->betha=betha;
         this->prune=prune;
     }
-    operation(double alpha, double betha, std::vector<std::pair<double,double>> tasks, PNGraph &G, csv::Parser &reader,
+    operation(double alpha, double betha, std::vector<task*> tasks, PNGraph &G, csv::Parser &reader,
               std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
             : G(G), listIds(listIds), listi(listi), reader(reader),tasks(tasks) {
         this->alpha=alpha;
@@ -29,25 +33,27 @@ struct operation{
         this->prune=prune;
     }
 };
+std::vector<operation::task*> tasks;
 
 void executeTask(int id,operation *op)
 {
     printf("%.4f-%.4f\n",op->alpha,op->betha);
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
 
-    for (int i = 0; i < op->tasks.size(); ++i) {
-        std::pair<double ,double > t=op->tasks[i];
-        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineAndPruneProposedParalel(g,t.first,t.second, op->reader, op->listi, op->listIds);
+    for (int i = 0; i < tasks.size(); ++i) {
+        operation::task *t=tasks[i];
+        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineAndPruneProposedParalel(g,t->prune,t->g, op->reader, op->listi, op->listIds);
         //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
-        char dir[20];
-        sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t.first,t.second);
-        printf("%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t.first,t.second);
+        char dir[40];
+        sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t->prune,t->g);
+        printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, t->prune,t->g);
         system((std::string("mkdir ") + dir).c_str());
         SymSnap::PrintSym(g1, op->listi, (std::string(dir) + SymGraphPath).c_str());
         system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
         delete(g1);
     }
-    delete(op);
+    //delete(op);
+    delete (g->idsrev);
     delete(g);
 }
 
@@ -116,7 +122,7 @@ int main(int argc, char *argv[]) {
     ctpl::thread_pool p(numthreads);
 
     printf("loading finished!\n");
-    std::vector<std::pair<double,double>> tasks;
+
     double g,proneTreshold;
     try {
         for (int i = 0;; ) {
@@ -126,7 +132,10 @@ int main(int argc, char *argv[]) {
                 for (int j = 0;; ) {
                     g = confreader[3][j];
                     j++;
-                    tasks.push_back(std::pair<double,double>(proneTreshold,g));
+                    operation::task *t=new operation::task();
+                    t->prune=proneTreshold;
+                    t->g=g;
+                    tasks.push_back(t);
                 }
             }  catch (csv::Error &e) {
 
