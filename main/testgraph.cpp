@@ -8,42 +8,35 @@
 struct operation{
     double alpha;
     double betha;
-    double prune;
-    struct task{
-        double prune;
-        double g;
-    };
-    std::vector<task*> &tasks;
     PNGraph &G;
     csv::Parser &reader;
     std::map<int, std::string> &listi;
     std::map<std::string,int> &listIds;
     operation(double alpha, double betha, double prune, PNGraph &G, csv::Parser &reader,
                   std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader) ,tasks(* new std::vector<task*>()){
+            : G(G), listIds(listIds), listi(listi), reader(reader){
         this->alpha=alpha;
         this->betha=betha;
-        this->prune=prune;
     }
-    operation(double alpha, double betha, std::vector<task*> tasks, PNGraph &G, csv::Parser &reader,
+    operation(double alpha, double betha, PNGraph &G, csv::Parser &reader,
               std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader),tasks(tasks) {
+            : G(G), listIds(listIds), listi(listi), reader(reader){
         this->alpha=alpha;
         this->betha=betha;
-        this->prune=prune;
     }
 };
-std::vector<operation::task*> tasks;
+std::vector<double> prunes;
+std::vector<double> ges;
 
 void executeTask(int id,operation *op)
 {
     printf("%.4f-%.4f\n",op->alpha,op->betha);
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
 
-    for (int i = 0; i < tasks.size(); ++i) {
-        operation::task *t=tasks[i];
-        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineAndPruneProposedParalel(g,t->prune,t->g, op->reader, op->listi, op->listIds);
+    for (int i = 0; i < ges.size(); ++i) {
+        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i], op->reader, op->listi, op->listIds);
         //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+
         char dir[40];
         sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t->prune,t->g);
         printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, t->prune,t->g);
