@@ -34,16 +34,24 @@ void executeTask(int id,operation *op)
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
 
     for (int i = 0; i < ges.size(); ++i) {
-        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i], op->reader, op->listi, op->listIds);
-        //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
-
         char dir[40];
-        sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t->prune,t->g);
-        printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, t->prune,t->g);
-        system((std::string("mkdir ") + dir).c_str());
-        SymSnap::PrintSym(g1, op->listi, (std::string(dir) + SymGraphPath).c_str());
-        system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
-        delete(g1);
+        FILE *tst = fopen((std::string(dir) + SymGraphPath+".gz").c_str(), "r");
+        if (tst == NULL) {
+            SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i], op->reader, op->listi, op->listIds);
+            for (int j = 0; j < prunes.size(); ++j) {
+                //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+                sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, prunes[j], ges[i]);
+                printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, prunes[j], ges[i]);
+                system((std::string("mkdir ") + dir).c_str());
+                SymSnap::DegreDiscountedRes * g2=new SymSnap::DegreDiscountedRes(new Eigen::SparseMatrix<double>(g1->res->pruned(prunes[j],1)),g1->idsrev);
+                SymSnap::PrintSym(g2, op->listi, (std::string(dir) + SymGraphPath).c_str());
+                system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
+                delete(g2);
+            }
+            delete (g1);
+        }
+        else
+            fclose(tst);
     }
     //delete(op);
     delete (g->idsrev);
@@ -121,18 +129,16 @@ int main(int argc, char *argv[]) {
         for (int i = 0;; ) {
             proneTreshold = confreader[2][i];
             i++;
-            try {
-                for (int j = 0;; ) {
-                    g = confreader[3][j];
-                    j++;
-                    operation::task *t=new operation::task();
-                    t->prune=proneTreshold;
-                    t->g=g;
-                    tasks.push_back(t);
-                }
-            }  catch (csv::Error &e) {
+            prunes.push_back(proneTreshold);
+        }
+    }  catch (csv::Error &e) {
 
-            }
+    }
+    try {
+        for (int j = 0;; ) {
+            g = confreader[3][j];
+            j++;
+            ges.push_back(g);
         }
     }  catch (csv::Error &e) {
 
@@ -147,7 +153,7 @@ int main(int argc, char *argv[]) {
                 for (int j = 0;; ) {
                     betha = confreader[1][j];
                     j++;
-                    p.push(executeTask, new operation(alpha, betha, tasks, F, reader, listi,listIds));
+                    p.push(executeTask, new operation(alpha, betha, F, reader, listi,listIds));
                 }
             }  catch (csv::Error &e) {
 

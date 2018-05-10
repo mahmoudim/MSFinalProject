@@ -143,7 +143,7 @@ SymSnap::DegreDiscountedRes * SymSnap::ConbineProposedParalel(DegreDiscountedRes
 
             }
         }
-    DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(u),res->idsrev);
+    DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(*u),res->idsrev);
     delete u;
     return ddd;
 }
