@@ -41,16 +41,22 @@ void executeTask(int id,operation *op)
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
 
     for (int i = 0; i < tasks.size(); ++i) {
-        operation::task *t=tasks[i];
-        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineAndPruneProposedParalel(g,t->prune,t->g, op->reader, op->listi, op->listIds);
-        //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+        operation::task *t = tasks[i];
         char dir[40];
-        sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t->prune,t->g);
-        printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, t->prune,t->g);
-        system((std::string("mkdir ") + dir).c_str());
-        SymSnap::PrintSym(g1, op->listi, (std::string(dir) + SymGraphPath).c_str());
-        system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
-        delete(g1);
+        sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, t->prune, t->g);
+        FILE *tst = fopen((std::string(dir) + SymGraphPath+".gz").c_str(), "r");
+        if (tst == NULL) {
+            SymSnap::DegreDiscountedRes *g1 = SymSnap::ConbineAndPruneProposedParalel(g, t->prune, t->g, op->reader,
+                                                                                      op->listi, op->listIds);
+            //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
+            printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, t->prune, t->g);
+            system((std::string("mkdir ") + dir).c_str());
+            SymSnap::PrintSym(g1, op->listi, (std::string(dir) + SymGraphPath).c_str());
+            system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
+            delete (g1);
+        }
+        else
+            fclose(tst);
     }
     //delete(op);
     delete (g->idsrev);
