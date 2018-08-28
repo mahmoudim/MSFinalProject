@@ -32,26 +32,25 @@ void executeTask(int id,operation *op)
 {
     printf("%.4f-%.4f\n",op->alpha,op->betha);
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
-
     for (int i = 0; i < ges.size(); ++i) {
-        char dir[40];
-        FILE *tst = fopen((std::string(dir) + SymGraphPath+".gz").c_str(), "r");
-        if (tst == NULL) {
-            SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i], op->reader, op->listi, op->listIds);
-            for (int j = 0; j < prunes.size(); ++j) {
-                //Eigen::SparseMatrix<double> g = SymSnap::DegreeDiscounted(F, alpha, betha, proneTreshold);
-                sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, prunes[j], ges[i]);
+        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i], op->reader, op->listi, op->listIds);
+        for (int j = 0; j < prunes.size(); ++j) {
+            char dir[40];
+            sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, prunes[j], ges[i]);
+            FILE *tst = fopen((std::string(dir) + SymGraphPath+".gz").c_str(), "r");
+            if (tst == NULL) {
                 printf("%.4f-%.4f-%.4f-%.4f\n", op->alpha, op->betha, prunes[j], ges[i]);
                 system((std::string("mkdir ") + dir).c_str());
-                SymSnap::DegreDiscountedRes * g2=new SymSnap::DegreDiscountedRes(new Eigen::SparseMatrix<double>(g1->res->pruned(prunes[j],1)),g1->idsrev);
+                SymSnap::DegreDiscountedRes *g2 = new SymSnap::DegreDiscountedRes(
+                        new Eigen::SparseMatrix<double>(g1->res->pruned(prunes[j], 1)), g1->idsrev);
                 SymSnap::PrintSym(g2, op->listi, (std::string(dir) + SymGraphPath).c_str());
                 system((std::string("gzip -f ") + (std::string(dir) + SymGraphPath)).c_str());
-                delete(g2);
+                delete (g2);
             }
-            delete (g1);
+            else
+                fclose(tst);
         }
-        else
-            fclose(tst);
+        delete (g1);
     }
     //delete(op);
     delete (g->idsrev);
