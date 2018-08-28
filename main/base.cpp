@@ -8,14 +8,8 @@ struct operation{
     double betha;
     PNGraph &G;
     std::map<int, std::string> &listi;
-    operation(double alpha, double betha, double prune, PNGraph &G,
-                  std::map<int, std::string> &listi)
-            : G(G), listi(listi){
-        this->alpha=alpha;
-        this->betha=betha;
-    }
     operation(double alpha, double betha, PNGraph &G,
-              std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
+              std::map<int, std::string> &listi)
             : G(G), listi(listi){
         this->alpha=alpha;
         this->betha=betha;
