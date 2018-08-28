@@ -1,26 +1,22 @@
 #include "stdafx.h"
 
 #define graphPath "graph.g"
-#define docSim "simHelinger.csv"
 #define confFile "conf.csv"
-#define docSimiDS "new_ids.txt"
 #define SymGraphPath "/SymGraph.g"
 struct operation{
     double alpha;
     double betha;
     PNGraph &G;
-    csv::Parser &reader;
     std::map<int, std::string> &listi;
-    std::map<std::string,int> &listIds;
-    operation(double alpha, double betha, double prune, PNGraph &G, csv::Parser &reader,
-                  std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader){
+    operation(double alpha, double betha, double prune, PNGraph &G,
+                  std::map<int, std::string> &listi)
+            : G(G), listi(listi){
         this->alpha=alpha;
         this->betha=betha;
     }
-    operation(double alpha, double betha, PNGraph &G, csv::Parser &reader,
+    operation(double alpha, double betha, PNGraph &G,
               std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader){
+            : G(G), listi(listi){
         this->alpha=alpha;
         this->betha=betha;
     }
@@ -74,7 +70,6 @@ int main(int argc, char *argv[]) {
 
     std::map<std::string, int> list;
     std::map<int, std::string> listi;
-    std::map<std::string,int> listIds;
 
     FILE *file = fopen(graphPath, "r");
 
@@ -102,17 +97,7 @@ int main(int argc, char *argv[]) {
 
     TIntV lis;
 
-    //read Similarity
 
-    FILE *ids=fopen(docSimiDS,"r");
-    char name[10];
-    while(fscanf(ids,"%s\n",name)!=EOF)
-    {
-        listIds[std::string(name)]=listIds.size();
-    }
-
-
-    csv::Parser reader = csv::Parser(docSim);
     csv::Parser confreader = csv::Parser(confFile);
 
     ctpl::thread_pool p(numthreads);
@@ -139,7 +124,7 @@ int main(int argc, char *argv[]) {
                 for (int j = 0;; ) {
                     betha = confreader[1][j];
                     j++;
-                    p.push(executeTask, new operation(alpha, betha, F, reader, listi,listIds));
+                    p.push(executeTask, new operation(alpha, betha, F, listi));
                 }
             }  catch (csv::Error &e) {
 
