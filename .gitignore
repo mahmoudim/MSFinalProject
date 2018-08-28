@@ -6,3 +6,5 @@ cmake-build-release/
 preds.names
 SymGraph.g
 SymGraph.g.index
+ids
+dataset

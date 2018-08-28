@@ -1,24 +1,64 @@
 //
 // Created by mehran on 2/27/18.
 //
+#include "../main/stdafx.h"
 
-void refine()
-{
+#define graphPath "../graph.g"
+#define datasetPath "../dataset"
+#define idsPath "../ids"
+#define rawdataPath "/run/media/mehran/New Volume/Users/Mehran/Documents/MainProject/new start/papers_text/%s\.txt"
 
-    //FILE*f = fopen("white.list","w");
 
-    FILE *f = fopen("dataset", "w");
+int main(int argc, char *argv[]) {
 
-    FILE *ids = fopen("ids", "w");
+
+    typedef PNGraph PGraph;
+    PGraph G = PGraph::TObj::New();
+
+    PNGraph F;
+
+    std::map<std::string, int> list;
+    std::map<int, std::string> listi;
+    std::map<std::string,int> listIds;
+
+    FILE *file = fopen(graphPath, "r");
+
+
+    char source[10], dest[10];
+
+
+    int count = 0;
+    while (fscanf(file, "%s ==> %s\n", source, dest) != EOF) {
+        std::string source1(source), dest1(dest);
+        if (list.find(source1) == list.end()) {
+            list.insert(std::pair<std::string, int>(source1, count));
+            listi.insert(std::pair<int, std::string>(count, source1));
+            G->AddNode(count++);
+        }
+
+        if (list.find(dest1) == list.end()) {
+            list.insert(std::pair<std::string, int>(dest1, count));
+            listi.insert(std::pair<int, std::string>(count, dest1));
+            G->AddNode(count++);
+        }
+        G->AddEdge(list[source1], list[dest1]);
+    }
+    F = TSnap::GetMxWcc(G);
+
+    TIntV lis;
+
+    F->GetNIdV(lis);
+
+    FILE *f = fopen(datasetPath, "w");
+
+    FILE *ids = fopen(idsPath, "w");
+
 
     for (int i = 0; i < lis.Len(); i++) {
         int j = lis[i];
-        /*fprintf(f, "%s\n", listi[j].c_str());
-        char str[80];
-        sprintf(str, "copy papers_text\\%s\.txt white_papers_text\\%s\.txt", listi[j].c_str(), listi[j].c_str());
-        system(str);*/
-        char fname[80];
-        sprintf(fname, "newUrl\\%s\.txt", listi[j].c_str());
+
+        char fname[100];
+        sprintf(fname,rawdataPath , listi[j].c_str());
         std::ifstream doc(fname);
         std::string str((std::istreambuf_iterator<char>(doc)),
                         std::istreambuf_iterator<char>());
@@ -92,10 +132,6 @@ void refine()
         if (count - spaces > 100) {
             fprintf(f, "%s\n", str.c_str());
             fprintf(ids, "%s\n", listi[j].c_str());
-        } else {
-            char str[80];
-            sprintf(str, "copy papers_text\\%s\.txt black\\%s\.txt", listi[j].c_str(), listi[j].c_str());
-            system(str);
         }
     }
     fclose(f);

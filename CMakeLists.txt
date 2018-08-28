@@ -5,6 +5,8 @@ add_executable(MainProject main/ctpl_stl.h main/csv.h main/csv.cpp main/testgrap
 
 add_executable(Evaluation main/csv.h main/csv.cpp Evaluation/directedModularity.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp)
 
+add_executable(Refine main/stdafx.cpp main/stdafx.h main/targetver.h snap/snap-core/Snap.cpp datasetRefine/refinePapersById.cpp)
+
 include_directories(snap/glib-core snap/snap-core snap/snap-adv snap/snap-exp clustering/lib Eigen spectra/include)
 
 find_package(OpenMP)
