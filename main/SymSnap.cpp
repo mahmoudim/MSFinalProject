@@ -48,7 +48,7 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, f
     return new  DegreDiscountedRes(u,idsrev1);
 };
 
-SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float alpha, float betha,float treshold,csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
+SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float alpha, float betha,float treshold,std::map<int, std::string> listi,std::map<std::string,int> listIds,double * data,long xMax) {
     std::map<int, int> ids, *idsrev1= new std::map<int, int>(),& idsrev= *idsrev1;
     TIntPrV in,out;TIntPr val;
     TSnap::GetNodeInDegV(G,in);
@@ -115,13 +115,12 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
     for (int k=0; k<d->outerSize(); ++k)
         for (Eigen::SparseMatrix<double>::InnerIterator it(*d,k); it; ++it)
         {
-            long double  data;
-            try {
-                data=reader[listIds[listi[idsrev[it.row()]]]][listIds[listi[idsrev[it.col()]]]];
-                it.valueRef() =(it.value()+data)/2;
-            } catch (csv::Error &e) {
+            long double  dat;
 
-            }
+            dat=SymSnap::reader(listIds[listi[idsrev[it.row()]]],listIds[listi[idsrev[it.col()]]],data,xMax);
+            if(dat>=0)
+                it.valueRef() =(it.value()+dat)/2;
+
         }
     DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(d->pruned(treshold,1)),idsrev1);
     delete (d);
@@ -130,18 +129,17 @@ SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float
 }
 
 SymSnap::DegreDiscountedRes * SymSnap::ConbineProposedParalel(DegreDiscountedRes *res, float g,
-                                                                      csv::Parser &reader,std::map<int, std::string> listi,std::map<std::string,int> listIds) {
+                                                                      std::map<int, std::string> listi,std::map<std::string,int> listIds,double * data,long xMax) {
     Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> (*res->res);
     for (int k=0; k<u->outerSize(); ++k)
         for (Eigen::SparseMatrix<double>::InnerIterator it(*u,k); it; ++it)
         {
-            long double  data;
-            try {
-                data=reader[listIds[listi[(*res->idsrev)[it.row()]]]][listIds[listi[(*res->idsrev)[it.col()]]]];
-                it.valueRef() =it.value()+pow(data,g);
-            } catch (csv::Error &e) {
+            long double  dat;
 
-            }
+            dat=SymSnap::reader(listIds[listi[(*res->idsrev)[it.row()]]],listIds[listi[(*res->idsrev)[it.col()]]],data,xMax);
+            if(dat>0)
+                it.valueRef() =it.value()+pow(dat,g);
+
         }
     DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(*u),res->idsrev);
     delete u;

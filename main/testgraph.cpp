@@ -1,26 +1,32 @@
 #include "stdafx.h"
+#include "cnpy.h"
 
 #define graphPath "graph.g"
-#define docSim "simHelinger.csv"
+#define docSim "simHelinger.npy"
 #define confFile "conf.csv"
 #define docSimiDS "new_ids.txt"
 #define SymGraphPath "/SymGraph.g"
+
+
+static double * data=NULL;
+static unsigned long xMax=0;
+
+
 struct operation{
     double alpha;
     double betha;
     PNGraph &G;
-    csv::Parser &reader;
     std::map<int, std::string> &listi;
     std::map<std::string,int> &listIds;
-    operation(double alpha, double betha, double prune, PNGraph &G, csv::Parser &reader,
+    operation(double alpha, double betha, double prune, PNGraph &G,
                   std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader){
+            : G(G), listIds(listIds), listi(listi){
         this->alpha=alpha;
         this->betha=betha;
     }
-    operation(double alpha, double betha, PNGraph &G, csv::Parser &reader,
+    operation(double alpha, double betha, PNGraph &G,
               std::map<int, std::string> &listi, std::map<std::string, int> &listIds)
-            : G(G), listIds(listIds), listi(listi), reader(reader){
+            : G(G), listIds(listIds), listi(listi){
         this->alpha=alpha;
         this->betha=betha;
     }
@@ -33,7 +39,7 @@ void executeTask(int id,operation *op)
     printf("%.4f-%.4f\n",op->alpha,op->betha);
     SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
     for (int i = 0; i < ges.size(); ++i) {
-        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i], op->reader, op->listi, op->listIds);
+        SymSnap::DegreDiscountedRes * g1 = SymSnap::ConbineProposedParalel(g,ges[i],  op->listi, op->listIds,data,xMax);
         for (int j = 0; j < prunes.size(); ++j) {
             char dir[40];
             sprintf(dir, "%.4f-%.4f-%.4f-%.4f", op->alpha, op->betha, prunes[j], ges[i]);
@@ -67,6 +73,7 @@ int main(int argc, char *argv[]) {
     }
 
 #pragma endregion
+
 
     Eigen::setNbThreads(numthreads);
     omp_set_num_threads(numthreads);
@@ -116,7 +123,10 @@ int main(int argc, char *argv[]) {
     }
 
 
-    csv::Parser reader = csv::Parser(docSim);
+    cnpy::NpyArray my_npy = cnpy::npy_load(docSim);
+    data = my_npy.data<double>();
+    xMax=my_npy.shape[0];
+
     csv::Parser confreader = csv::Parser(confFile);
 
     ctpl::thread_pool p(numthreads);
@@ -152,7 +162,7 @@ int main(int argc, char *argv[]) {
                 for (int j = 0;; ) {
                     betha = confreader[1][j];
                     j++;
-                    p.push(executeTask, new operation(alpha, betha, F, reader, listi,listIds));
+                    p.push(executeTask, new operation(alpha, betha, F, listi,listIds));
                 }
             }  catch (csv::Error &e) {
 

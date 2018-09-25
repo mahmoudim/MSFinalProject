@@ -1,7 +1,16 @@
 cmake_minimum_required (VERSION 3.0)
 project (MainProject)
 
+find_package(ZLIB REQUIRED)
+
+include_directories(${ZLIB_INCLUDE_DIRS})
+
+add_library(cnpy SHARED "main/cnpy.cpp")
+target_link_libraries(cnpy ${ZLIB_LIBRARIES})
+
+
 add_executable(Proposed main/ctpl_stl.h main/csv.h main/csv.cpp main/testgraph.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h main/csv.cpp)
+target_link_libraries(Proposed cnpy)
 
 add_executable(Base main/ctpl_stl.h main/csv.h main/csv.cpp main/base.cpp main/stdafx.cpp main/stdafx.h main/SymSnap.cpp main/SymSnap.h main/targetver.h snap/snap-core/Snap.cpp snap/snap-core/Snap.h main/csv.cpp)
 
