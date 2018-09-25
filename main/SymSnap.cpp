@@ -138,7 +138,7 @@ SymSnap::DegreDiscountedRes * SymSnap::ConbineProposedParalel(DegreDiscountedRes
 
             dat=SymSnap::reader(listIds[listi[(*res->idsrev)[it.row()]]],listIds[listi[(*res->idsrev)[it.col()]]],data,xMax);
             if(dat>0)
-                it.valueRef() =it.value()+pow(dat,g);
+                it.valueRef() =std::min(it.value(),dat);
 
         }
     DegreDiscountedRes *ddd=new  DegreDiscountedRes( new Eigen::SparseMatrix<double>(*u),res->idsrev);
