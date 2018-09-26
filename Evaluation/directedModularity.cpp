@@ -1,8 +1,8 @@
 #include "../main/stdafx.h"
 
 #define graphPath "../graph.g"
-#define namesgraphPath "../SymGraph.g.index"
-#define ComgraphPath "../preds.names"
+#define namesgraphPath "SymGraph.g.index"
+#define ComgraphPath "preds.names"
 
 
 int main(int argc, char *argv[]) {
