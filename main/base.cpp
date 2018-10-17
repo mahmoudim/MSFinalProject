@@ -20,7 +20,7 @@ std::vector<double> prunes;
 void executeTask(int id,operation *op)
 {
     printf("%.4f-%.4f\n",op->alpha,op->betha);
-    SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscountedProposedParalel(op->G, op->alpha,op->betha);
+    SymSnap::DegreDiscountedRes * g = SymSnap::DegreeDiscounted(op->G, op->alpha,op->betha);
     for (int j = 0; j < prunes.size(); ++j) {
             char dir[40];
             sprintf(dir, "%.4f-%.4f-%.4f", op->alpha, op->betha, prunes[j]);

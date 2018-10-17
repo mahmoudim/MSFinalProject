@@ -1,51 +1,60 @@
 #include "stdafx.h"
 
 
-SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha,float treshold) {
-    std::map<int, int> ids,  *idsrev1= new std::map<int, int>(),& idsrev= *idsrev1;
-	TIntPrV in,out;TIntPr val;
-	TSnap::GetNodeInDegV(G,in);
+SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscounted(PNGraph G,float alpha, float betha) {
+    std::map<int, int> ids, *idsrev1=new std::map<int, int> () ,&idsrev=*idsrev1;
+    TIntPrV in,out;TIntPr val;
+    TSnap::GetNodeInDegV(G,in);
     TSnap::GetNodeOutDegV(G,out);
     int count = G->GetNodes();
 
 
-	Eigen::SparseMatrix<double> adj(count, count);
-	for (int i = 0; i < count; i++) {
-		adj.insert(i, i) = 1;
-	}
-	Eigen::SparseMatrix<double> di(count, count), doo(count, count);
-	for (int i = 0; i < count; val = in[i++]) {
-		TInt a, b;
-		val.GetVal(a, b);
-		if(ids.find(a)==ids.end())
-			ids[a] = ids.size();
-		idsrev[ids[a]] = a;
-		di.insert(ids[a], ids[a]) = pow((double)b.Val+ 1.0,-1*betha);
-	}
-	for (int i = 0; i < count; val = out[i++]) {
-		TInt a, b;
-		val.GetVal(a, b);
-		if (ids.find(a) == ids.end())
-			ids[a] = ids.size();
-		idsrev[ids[a]] = a;
-		doo.insert(ids[a], ids[a]) = pow((double)b.Val + 1.0, -1 * alpha);
-	}
+    Eigen::SparseMatrix<double> *bd;
+    Eigen::SparseMatrix<double> *cd;
 
-	
-	for (TNGraph::TEdgeI  s = G->BegEI(); s!=G->EndEI(); s++) {
-		if(s.GetSrcNId()!= s.GetDstNId())
-			adj.insert(ids[s.GetSrcNId()], ids[s.GetDstNId()]) = 1;
-	}
-	
-	Eigen::Transpose<Eigen::SparseMatrix<double>> adj_trans = adj.transpose();
+    {
+        Eigen::SparseMatrix<double> adj(count, count);
 
-	Eigen::SparseMatrix<double> bd =(doo)*(adj)*(di)*(adj_trans)*(doo);
+        for (int i = 0; i < count; i++) {
+            adj.insert(i, i) = 1;
+        }
 
-	Eigen::SparseMatrix<double> cd = (di)*(adj)*(doo)*(adj_trans)*(di);
+        Eigen::SparseMatrix<double> di(count, count), doo(count, count);
+        TInt a, b;
+        int poss=0;
+        for (int i = 0; i < count; val = in[i++]) {
+            val.GetVal(a, b);
+            if(ids.find(a.Val)==ids.end())
+                ids[a.Val] = poss++;
 
-    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double>((bd + cd).pruned(treshold,1));
+            idsrev[ids[a.Val]] = a.Val;
+            di.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val+ 1.0,-1*betha);
+        }
+        for (int i = 0; i < count; val = out[i++]) {
+            val.GetVal(a, b);
+            if (ids.find(a.Val) == ids.end())
+                ids[a.Val] = poss++;
+            idsrev[ids[a.Val]] = a.Val;
+            doo.insert(ids[a.Val], ids[a.Val]) = pow((double)b.Val + 1.0, -1 * alpha);
+        }
 
-    return new  DegreDiscountedRes(u,idsrev1);
+
+        for (TNGraph::TEdgeI  s = G->BegEI(); s!=G->EndEI(); s++) {
+            if(s.GetSrcNId()!= s.GetDstNId())
+                adj.insert(ids[s.GetSrcNId()], ids[s.GetDstNId()]) = 1;
+        }
+        Eigen::Transpose<Eigen::SparseMatrix<double>> adj_trans = adj.transpose();
+
+        bd = new Eigen::SparseMatrix<double> ((doo) * (adj) * (di) * (adj_trans) * (doo));
+
+        cd = new Eigen::SparseMatrix<double> ((di) * (adj) * (doo) * (adj_trans) * (di));
+    }
+
+    Eigen::SparseMatrix<double> *u = new Eigen::SparseMatrix<double> (*bd + *cd);
+    delete(bd);
+    delete(cd);
+
+    return new  DegreDiscountedRes( u,idsrev1);
 };
 
 SymSnap::DegreDiscountedRes * SymSnap::DegreeDiscountedProposed(PNGraph &G,float alpha, float betha,float treshold,std::map<int, std::string> listi,std::map<std::string,int> listIds,double * data,long xMax) {

@@ -23,7 +23,7 @@ namespace SymSnap {
         }
 
 	};
-	DegreDiscountedRes * DegreeDiscounted(PNGraph G,float alpha,float betha, float treshold);
+	DegreDiscountedRes * DegreeDiscounted(PNGraph G,float alpha,float betha);
 	DegreDiscountedRes * DegreeDiscountedProposed(PNGraph &G,float alpha,float betha, float treshold,std::map<int, std::string>,std::map<std::string,int>,double * data,long xMax);
 	DegreDiscountedRes * DegreeDiscountedProposedParalel(PNGraph &G,float alpha,float betha);
 	DegreDiscountedRes * ConbineProposedParalel(DegreDiscountedRes * ,float g,std::map<int, std::string>,std::map<std::string,int>,double *,long);
